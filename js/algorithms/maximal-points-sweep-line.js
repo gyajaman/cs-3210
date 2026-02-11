@@ -451,7 +451,7 @@ function startVisualization() {
   state.maximalIds = new Set();
 
   updateControls();
-  updateStatus('Points sorted by x and relabeled as #1..#n. Sweep right-to-left with rightMaxY.');
+  updateStatus('Points sorted by x and relabeled as #1 to #n. Sweep right-to-left with rightMaxY.');
   updateMetrics();
   renderEventList();
   renderSweepState();
