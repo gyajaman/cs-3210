@@ -1,8 +1,10 @@
 import * as sweepLineIntersections from './algorithms/sweep-line-intersections.js';
 import * as maximalPointsDivideConquer from './algorithms/maximal-points-divide-conquer.js';
+import * as maximalPointsSweepLine from './algorithms/maximal-points-sweep-line.js';
 
 const algorithms = [
   sweepLineIntersections,
+  maximalPointsSweepLine,
   maximalPointsDivideConquer,
 ];
 
