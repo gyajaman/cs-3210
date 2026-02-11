@@ -47,6 +47,15 @@ html, body {
   overflow-y: auto;
 }
 
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #1f1f33;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: auto;
+}
+
 .sidebar-header { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
 .sidebar-header h2 { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; color: #e0e0e8; line-height: 1.4; }
 .sidebar-header span { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }

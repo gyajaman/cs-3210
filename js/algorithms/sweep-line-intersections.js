@@ -33,6 +33,7 @@ export function init(elements) {
     foundIntersections: [],
     currentEvent: null,
     isPlaying: false,
+    isStepping: false,
     speed: 5,
     animDelay: 600,
   };
@@ -412,19 +413,26 @@ function startVisualization() {
 }
 
 async function stepForward() {
-  if (state.phase !== 'running') return;
+  if (state.phase !== 'running' || state.isPlaying || state.isStepping) return;
   if (state.currentIdx >= state.events.length - 1) { finishVisualization(); return; }
-  state.currentIdx++;
-  const ev = state.events[state.currentIdx];
-  state.currentEvent = ev;
-  await animateSweepTo(ev.x);
-  processEvent(ev);
-  render();
-  renderEventList();
-  renderBST();
-  updateEventStatus(ev);
-  updateMetrics();
-  if (state.currentIdx >= state.events.length - 1) finishVisualization();
+  state.isStepping = true;
+  updateControls();
+  try {
+    state.currentIdx++;
+    const ev = state.events[state.currentIdx];
+    state.currentEvent = ev;
+    await animateSweepTo(ev.x);
+    processEvent(ev);
+    render();
+    renderEventList();
+    renderBST();
+    updateEventStatus(ev);
+    updateMetrics();
+    if (state.currentIdx >= state.events.length - 1) finishVisualization();
+  } finally {
+    state.isStepping = false;
+    updateControls();
+  }
 }
 
 async function togglePlay() {
@@ -476,6 +484,7 @@ function resetVisualization() {
   state.foundIntersections = [];
   state.currentEvent = null;
   state.isPlaying = false;
+  state.isStepping = false;
   updateControls();
   updateStatus('Draw lines on the canvas, then click Visualize');
   updateMetrics();
@@ -689,8 +698,8 @@ function updateControls() {
   const drawing = state.phase === 'draw';
   const running = state.phase === 'running';
   run.disabled = !drawing || state.lines.length === 0;
-  step.disabled = !running || state.isPlaying;
-  play.disabled = !running;
+  step.disabled = !running || state.isPlaying || state.isStepping;
+  play.disabled = !running || state.isStepping;
   play.textContent = state.isPlaying ? 'Pause' : 'Play';
   reset.disabled = drawing;
   canvas.style.cursor = drawing ? 'crosshair' : 'default';
