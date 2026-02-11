@@ -375,7 +375,12 @@ function drawFrontier() {
   ctx.beginPath();
   ctx.moveTo(pts[0].x, toScreenY(pts[0].y));
   for (let i = 1; i < pts.length; i++) {
-    ctx.lineTo(pts[i].x, toScreenY(pts[i].y));
+    const prev = pts[i - 1];
+    const next = pts[i];
+    const prevY = toScreenY(prev.y);
+    const nextY = toScreenY(next.y);
+    ctx.lineTo(prev.x, nextY);
+    ctx.lineTo(next.x, nextY);
   }
   ctx.stroke();
   ctx.setLineDash([]);
