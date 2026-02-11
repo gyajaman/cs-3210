@@ -1,7 +1,9 @@
 import * as sweepLineIntersections from './algorithms/sweep-line-intersections.js';
+import * as maximalPointsDivideConquer from './algorithms/maximal-points-divide-conquer.js';
 
 const algorithms = [
   sweepLineIntersections,
+  maximalPointsDivideConquer,
 ];
 
 const categoryNames = {
