@@ -45,6 +45,7 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -64,7 +65,7 @@ html, body {
 }
 
 .resize-handle-left {
-  right: -2.5px;
+  right: 0;
 }
 
 .resize-handle-right {
