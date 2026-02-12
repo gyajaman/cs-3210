@@ -79,16 +79,12 @@ export function destroy() {
     const c = canvas.getContext('2d');
     c.clearRect(0, 0, canvas.width, canvas.height);
   }
-  if (els && els.dsPanel) {
-    els.dsPanel.style.width = prevDsPanelWidth;
-  }
   state = null;
   els = canvas = ctx = null;
 }
 
 function setupDOM() {
-  prevDsPanelWidth = els.dsPanel.style.width;
-  els.dsPanel.style.width = '320px';
+  prevDsPanelWidth = els.dsPanelContainer ? els.dsPanelContainer.style.width : '';
 
   els.toolbarControls.innerHTML = `
     <button id="btn-example">Example</button>

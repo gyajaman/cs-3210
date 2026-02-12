@@ -1,11 +1,13 @@
 import * as sweepLineIntersections from './algorithms/sweep-line-intersections.js';
 import * as maximalPointsDivideConquer from './algorithms/maximal-points-divide-conquer.js';
 import * as maximalPointsSweepLine from './algorithms/maximal-points-sweep-line.js';
+import * as karatsubaMultiplication from './algorithms/karatsuba-multiplication.js';
 
 const algorithms = [
   sweepLineIntersections,
   maximalPointsSweepLine,
   maximalPointsDivideConquer,
+  karatsubaMultiplication,
 ];
 
 const categoryNames = {
@@ -27,9 +29,12 @@ const els = {
   toolbarControls: document.getElementById('toolbar-controls'),
   canvas: document.getElementById('canvas'),
   canvasContainer: document.getElementById('canvas-container'),
-  dsPanel: document.getElementById('ds-panel'),
+  dsPanel: document.getElementById('ds-panel-content'),
+  dsPanelContainer: document.getElementById('ds-panel'),
   infoPanel: document.getElementById('info-panel'),
   emptyState: document.getElementById('empty-state'),
+  sidebar: document.getElementById('sidebar'),
+  app: document.getElementById('app'),
 };
 
 function buildSidebar() {
@@ -120,7 +125,59 @@ window.addEventListener('hashchange', () => {
   navigate(location.hash.slice(1));
 });
 
+function setupResizablePanel(panel, property, minWidth = 150, maxWidth = 600) {
+  const handle = document.createElement('div');
+  handle.className = `resize-handle ${property === '--sidebar-width' ? 'resize-handle-left' : 'resize-handle-right'}`;
+  panel.appendChild(handle);
+
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  // Load saved width from localStorage
+  const savedWidth = localStorage.getItem(property);
+  if (savedWidth) {
+    document.documentElement.style.setProperty(property, savedWidth);
+  }
+
+  handle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    const currentWidth = getComputedStyle(document.documentElement).getPropertyValue(property);
+    startWidth = parseInt(currentWidth) || (property === '--sidebar-width' ? 250 : 250);
+    handle.classList.add('resizing');
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+
+    const delta = property === '--sidebar-width' ? (e.clientX - startX) : (startX - e.clientX);
+    let newWidth = startWidth + delta;
+    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+    document.documentElement.style.setProperty(property, `${newWidth}px`);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      handle.classList.remove('resizing');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+
+      // Save width to localStorage
+      const currentWidth = getComputedStyle(document.documentElement).getPropertyValue(property);
+      localStorage.setItem(property, currentWidth);
+    }
+  });
+}
+
 buildSidebar();
+setupResizablePanel(els.sidebar, '--sidebar-width', 150, 600);
+setupResizablePanel(els.dsPanelContainer, '--ds-panel-width', 200, 600);
 
 const initialId = location.hash.slice(1) || (algorithms[0] && algorithms[0].id);
 if (initialId) {
