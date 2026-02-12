@@ -103,6 +103,12 @@ html, body {
   flex-shrink: 0;
 }
 
+.sidebar-footer p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .sidebar-header { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
 .sidebar-header h2 { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; color: #e0e0e8; line-height: 1.4; }
 .sidebar-header span { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
@@ -120,11 +126,23 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
   user-select: none;
   transition: color 0.15s;
 }
 .nav-cat-header:hover { color: var(--text); }
-.nav-cat-header .arrow { font-size: 10px; transition: transform 0.2s; display: inline-block; }
+.nav-cat-header .arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.nav-cat-title {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .nav-cat-header.collapsed .arrow { transform: rotate(-90deg); }
 
 .nav-items { overflow: hidden; transition: max-height 0.25s ease; }
@@ -139,6 +157,9 @@ html, body {
   transition: all 0.15s;
   text-decoration: none;
   border-left: 2px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
 .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(124,77,255,0.06); }

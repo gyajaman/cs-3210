@@ -49,7 +49,7 @@ function buildSidebar() {
     if (!grouped[catId]) continue;
     const catName = categoryNames[catId];
     html += `<div class="nav-category">`;
-    html += `<div class="nav-cat-header" data-cat="${catId}"><span class="arrow">&#9662;</span> ${catName}</div>`;
+    html += `<div class="nav-cat-header" data-cat="${catId}"><span class="arrow">&#9662;</span><span class="nav-cat-title">${catName}</span></div>`;
     html += `<div class="nav-items" data-cat-items="${catId}">`;
     for (const algo of grouped[catId]) {
       html += `<a class="nav-item" data-algo="${algo.id}" href="#${algo.id}">${algo.title}</a>`;
