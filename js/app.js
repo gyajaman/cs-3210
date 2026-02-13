@@ -2,12 +2,14 @@ import * as sweepLineIntersections from './algorithms/sweep-line-intersections.j
 import * as maximalPointsDivideConquer from './algorithms/maximal-points-divide-conquer.js';
 import * as maximalPointsSweepLine from './algorithms/maximal-points-sweep-line.js';
 import * as karatsubaMultiplication from './algorithms/karatsuba-multiplication.js';
+import * as quickselect from './algorithms/quickselect.js';
 
 const algorithms = [
   sweepLineIntersections,
   maximalPointsSweepLine,
   maximalPointsDivideConquer,
   karatsubaMultiplication,
+  quickselect,
 ];
 
 const categoryNames = {

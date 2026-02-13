@@ -854,7 +854,6 @@ function drawNode(nodeId) {
   const { cx, cy, width, height } = pos;
   const x = cx - width / 2;
   const y = cy - height / 2;
-  const r = 8;
 
   let fill, stroke, textColor;
   switch (status) {
@@ -897,9 +896,8 @@ function drawNode(nodeId) {
   ctx.fillStyle = fill;
   ctx.strokeStyle = stroke;
   ctx.lineWidth = isActive ? 2.5 : 1.2;
-  roundedRect(ctx, x, y, width, height, r);
-  ctx.fill();
-  ctx.stroke();
+  ctx.fillRect(x, y, width, height);
+  ctx.strokeRect(x, y, width, height);
   ctx.shadowBlur = 0;
 
   // Node text: show sub-problem while computing, swap to result when complete
@@ -929,20 +927,6 @@ function drawNode(nodeId) {
   }
 
   ctx.restore();
-}
-
-function roundedRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
 }
 
 // ── Side Panel: Node List ──

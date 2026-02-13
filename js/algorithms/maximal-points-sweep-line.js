@@ -138,8 +138,8 @@ function setupDOM() {
   `;
 
   els.emptyState.innerHTML = `
-    <div class="es-title">Click to place points</div>
-    <div class="es-sub">Sweep from right to left while tracking rightMaxY</div>
+    <div class="es-title">Maximal Points: Sweep Line</div>
+    <div class="es-sub">Click to place points, then click Find Maximal to run the algorithm</div>
   `;
 
   canvas = els.canvas;

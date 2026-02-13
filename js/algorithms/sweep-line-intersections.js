@@ -115,8 +115,8 @@ function setupDOM() {
   `;
 
   els.emptyState.innerHTML = `
-    <div class="es-title">Click and drag to draw orthogonal lines</div>
-    <div class="es-sub">Lines snap to horizontal or vertical based on drag direction</div>
+    <div class="es-title">Orthogonal Line Intersections</div>
+    <div class="es-sub">Click and drag to draw lines, then click Find Intersections</div>
   `;
 
   canvas = els.canvas;

@@ -137,8 +137,8 @@ function setupDOM() {
   `;
 
   els.emptyState.innerHTML = `
-    <div class="es-title">Click to place points</div>
-    <div class="es-sub">A point is dominated if another point has x >= and y >=, with at least one strict</div>
+    <div class="es-title">Maximal Points: Divide & Conquer</div>
+    <div class="es-sub">Click to place points, then click Find Maximal to run the algorithm</div>
   `;
 
   canvas = els.canvas;
