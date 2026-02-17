@@ -1,6 +1,6 @@
 export const id = 'sweep-line-intersections';
 export const title = 'Orthogonal Line Intersections';
-export const category = 'sweep-line';
+export const categories = ['sweep-line'];
 export const badge = 'Sweep Line';
 
 let els, canvas, ctx, bstCanvas, bctx, bstContainer;

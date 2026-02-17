@@ -3,6 +3,7 @@ import * as maximalPointsDivideConquer from './algorithms/maximal-points-divide-
 import * as maximalPointsSweepLine from './algorithms/maximal-points-sweep-line.js';
 import * as karatsubaMultiplication from './algorithms/karatsuba-multiplication.js';
 import * as quickselect from './algorithms/quickselect.js';
+import * as radixSort from './algorithms/radix-sort.js';
 
 const algorithms = [
   sweepLineIntersections,
@@ -10,9 +11,11 @@ const algorithms = [
   maximalPointsDivideConquer,
   karatsubaMultiplication,
   quickselect,
+  radixSort,
 ];
 
 const categoryNames = {
+  'sorting': 'Sorting',
   'sweep-line': 'Sweep Line',
   'divide-conquer': 'Divide & Conquer',
   'dynamic-programming': 'Dynamic Programming',
@@ -42,8 +45,11 @@ const els = {
 function buildSidebar() {
   const grouped = {};
   for (const algo of algorithms) {
-    if (!grouped[algo.category]) grouped[algo.category] = [];
-    grouped[algo.category].push(algo);
+    const cats = algo.categories;
+    for (const cat of cats) {
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(algo);
+    }
   }
 
   let html = '';

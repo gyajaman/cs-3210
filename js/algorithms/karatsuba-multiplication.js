@@ -1,6 +1,6 @@
 export const id = 'karatsuba-multiplication';
 export const title = 'Karatsuba Multiplication';
-export const category = 'divide-conquer';
+export const categories = ['divide-conquer'];
 export const badge = 'Divide & Conquer';
 
 let els, canvas, ctx;

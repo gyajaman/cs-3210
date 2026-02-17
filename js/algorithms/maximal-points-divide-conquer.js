@@ -1,6 +1,6 @@
 export const id = 'maximal-points-divide-conquer';
 export const title = 'Maximal Points in 2D';
-export const category = 'divide-conquer';
+export const categories = ['divide-conquer'];
 export const badge = 'Divide & Conquer';
 
 let els, canvas, ctx;

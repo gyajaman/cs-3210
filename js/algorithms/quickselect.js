@@ -1,7 +1,7 @@
 export const id = 'quickselect';
 export const title = 'QuickSelect (k-th Smallest)';
-export const category = 'divide-conquer';
-export const badge = 'Randomized';
+export const categories = ['divide-conquer'];
+export const badge = 'Divide & Conquer';
 
 let els, canvas, ctx;
 let cw, ch, dpr;

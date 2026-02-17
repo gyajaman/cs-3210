@@ -1,6 +1,6 @@
 export const id = 'maximal-points-sweep-line';
 export const title = 'Maximal Points in 2D';
-export const category = 'sweep-line';
+export const categories = ['sweep-line'];
 export const badge = 'Sweep Line';
 
 const EPS = 1e-9;
