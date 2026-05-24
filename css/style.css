@@ -777,3 +777,71 @@ input[type="range"] { width: 70px; accent-color: var(--accent); }
   font-family: var(--mono);
   min-width: 16px;
 }
+
+/* ── Optimal Triangulation ── */
+
+.ot-section-table { flex: 0 0 50%; max-height: 50%; }
+.ot-section-inspector { flex: 1; }
+
+.ot-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 6px;
+}
+.ot-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.ot-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.ot-dp-table {
+  border-collapse: collapse;
+  font-size: 10px;
+  font-family: var(--mono);
+}
+.ot-dp-table th {
+  padding: 4px 6px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-align: center;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.ot-dp-table td {
+  padding: 4px 6px;
+  text-align: center;
+  min-width: 32px;
+}
+.ot-cell { border: 1px solid rgba(30,30,56,0.4); }
+.ot-cell-na { color: var(--text-muted); opacity: 0.3; }
+.ot-cell-base { color: var(--text-dim); background: rgba(255,255,255,0.03); }
+.ot-cell-empty { color: var(--text-muted); background: rgba(255,255,255,0.015); }
+.ot-cell-current {
+  color: #ffca28;
+  background: rgba(255,202,40,0.15);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px rgba(255,202,40,0.4);
+}
+.ot-cell-filled { color: #66bb6a; background: rgba(102,187,106,0.1); }
+.ot-cell-answer {
+  color: #66bb6a !important;
+  background: rgba(102,187,106,0.2) !important;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px rgba(102,187,106,0.5);
+}
+
+/* ── 0/1 Knapsack ── */
+
+.ks-section-table { flex: 0 0 50%; max-height: 50%; }
+.ks-section-inspector { flex: 1; }
+
+.ks-cell-take { color: #66bb6a; background: rgba(102,187,106,0.12); }
+.ks-cell-selected {
+  color: #66bb6a;
+  background: rgba(102,187,106,0.2);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px rgba(102,187,106,0.4);
+}
+.ks-cell-bt { background: rgba(124,77,255,0.08); }
+
+/* Dijkstra */
+.dj-row-current td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.dj-row-visited td { background: rgba(102,187,106,0.06); color: #a5d6a7; }
+.dj-row-queued td { background: rgba(124,77,255,0.06); color: #b39ddb; }

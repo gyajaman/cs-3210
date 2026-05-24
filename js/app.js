@@ -4,6 +4,9 @@ import * as maximalPointsSweepLine from './algorithms/maximal-points-sweep-line.
 import * as karatsubaMultiplication from './algorithms/karatsuba-multiplication.js';
 import * as quickselect from './algorithms/quickselect.js';
 import * as radixSort from './algorithms/radix-sort.js';
+import * as optimalTriangulation from './algorithms/optimal-triangulation.js';
+import * as knapsack01 from './algorithms/knapsack-01.js';
+import * as dijkstra from './algorithms/dijkstra.js';
 
 const algorithms = [
   sweepLineIntersections,
@@ -12,6 +15,9 @@ const algorithms = [
   karatsubaMultiplication,
   quickselect,
   radixSort,
+  optimalTriangulation,
+  knapsack01,
+  dijkstra,
 ];
 
 const categoryNames = {
