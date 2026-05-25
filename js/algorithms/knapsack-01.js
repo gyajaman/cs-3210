@@ -1,3 +1,5 @@
+import { C } from '../theme.js';
+
 export const id = 'knapsack-01';
 export const title = '0/1 Knapsack';
 export const categories = ['dynamic-programming'];
@@ -7,22 +9,6 @@ let els, canvas, ctx;
 let cw, ch, dpr;
 let state, listeners;
 let delayTimer, delayResolve;
-let animFrameId;
-
-const C = {
-  accent:       '#7c4dff',
-  accentLight:  '#a48fff',
-  accentDim:    'rgba(124,77,255,0.15)',
-  lineH:        '#4fc3f7',
-  lineV:        '#66bb6a',
-  sweep:        '#ef5350',
-  intersection: '#ffca28',
-  activeLine:   '#ce93d8',
-  text:         '#c8c8d0',
-  textDim:      '#666680',
-  textMuted:    '#44445a',
-  bgCanvas:     '#0d1117',
-};
 
 const ITEM_COLORS = [
   { fill: 'rgba(124,77,255,0.18)', border: '#7c4dff', label: '#b39ddb' },
@@ -45,7 +31,6 @@ export function init(elements) {
   listeners = [];
   delayTimer = null;
   delayResolve = null;
-  animFrameId = null;
 
   state = {
     items: [],
@@ -84,7 +69,6 @@ export function init(elements) {
 
 export function destroy() {
   cancelDelay();
-  cancelAnim();
   for (const { el, event, handler } of listeners) {
     el.removeEventListener(event, handler);
   }
@@ -219,8 +203,6 @@ function inputValid() {
          !isNaN(capacity) && capacity >= 1 && capacity <= 20;
 }
 
-// ── Examples ──
-
 function loadExample() {
   if (state.phase !== 'input') resetVisualization();
   document.getElementById('ks-items').value = '1:1, 3:4, 4:5, 5:7';
@@ -244,8 +226,6 @@ function loadRandom() {
   updateControls();
 }
 
-// ── Backtrack from any cell ──
-
 function backtrackCell(row, cap) {
   const result = new Set();
   let remW = cap;
@@ -257,8 +237,6 @@ function backtrackCell(row, cap) {
   }
   return result;
 }
-
-// ── Trace building ──
 
 function buildTrace(items, capacity) {
   const n = items.length;
@@ -321,8 +299,6 @@ function buildTrace(items, capacity) {
 
   return { trace, dp };
 }
-
-// ── Visualization lifecycle ──
 
 function startVisualization() {
   if (!inputValid()) return;
@@ -443,7 +419,6 @@ async function togglePlay() {
 
 function finishVisualization() {
   cancelDelay();
-  cancelAnim();
   state.phase = 'complete';
   state.isPlaying = false;
   state.isStepping = false;
@@ -456,7 +431,6 @@ function finishVisualization() {
 
 function resetVisualization() {
   cancelDelay();
-  cancelAnim();
   state.phase = 'input';
   state.trace = [];
   state.currentStep = -1;
@@ -484,8 +458,6 @@ function resetVisualization() {
   render();
 }
 
-// ── Delay / speed ──
-
 function delay(ms) {
   return new Promise(resolve => {
     delayResolve = resolve;
@@ -498,16 +470,10 @@ function cancelDelay() {
   if (delayResolve) { delayResolve(); delayResolve = null; }
 }
 
-function cancelAnim() {
-  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
-}
-
 function updateSpeed() {
   state.speed = parseInt(document.getElementById('speed').value, 10);
   state.animDelay = 1200 / state.speed;
 }
-
-// ── Which items to show in the bag ──
 
 function visibleBag() {
   if (state.phase === 'complete') return state.selectedItems;
@@ -518,8 +484,6 @@ function bagCapacity() {
   if (state.phase === 'complete') return state.capacity;
   return state.currentCap > 0 ? state.currentCap : state.capacity;
 }
-
-// ── Rendering ──
 
 function render() {
   ctx.clearRect(0, 0, cw, ch);
@@ -578,7 +542,6 @@ function drawItems() {
     const divOffset = (showDivider && i >= availCount) ? dividerH : 0;
     const y = startY + i * (cardH + gap) + divOffset;
 
-    // Draw divider line between available and locked items
     if (showDivider && i === availCount) {
       const divY = startY + i * (cardH + gap) + dividerH / 2;
       ctx.save();
@@ -657,7 +620,6 @@ function drawItems() {
     ctx.stroke();
     ctx.restore();
 
-    // Weight bar inside card
     const maxW = Math.max(...state.items.map(it => it.weight));
     const barMaxW = cardW - 110;
     const barW = Math.max(8, (item.weight / maxW) * barMaxW);
@@ -672,7 +634,6 @@ function drawItems() {
     roundedRect(barX, barY, barW, barH, 3);
     ctx.fill();
 
-    // Labels
     const textCol = cState === 'selected' ? C.lineV :
                     cState === 'in-bag' ? ic.label :
                     cState === 'active' ? C.intersection :
@@ -687,7 +648,6 @@ function drawItems() {
     ctx.fillStyle = (cState === 'dimmed' || cState === 'unavailable') ? C.textMuted : C.textDim;
     ctx.fillText(`w=${item.weight}  v=${item.value}`, x + 12, y + cardH / 2 + 10);
 
-    // "IN BAG" badge
     if (cState === 'in-bag' || cState === 'selected') {
       const badgeText = 'IN';
       const bw = 26;
@@ -719,7 +679,6 @@ function drawKnapsack() {
   const bag = visibleBag();
   const isFinal = state.phase === 'complete';
 
-  // Container outline
   ctx.save();
   roundedRect(kx, ky, kw, kh, 8);
   ctx.fillStyle = 'rgba(255,255,255,0.02)';
@@ -729,7 +688,6 @@ function drawKnapsack() {
   ctx.stroke();
   ctx.restore();
 
-  // Shade area above subproblem capacity as unavailable
   if (!isFinal && cap > 0 && cap < state.capacity) {
     const capY = ky + kh - cap * unitH;
     ctx.save();
@@ -738,7 +696,6 @@ function drawKnapsack() {
     ctx.fill();
     ctx.restore();
 
-    // Capacity boundary line
     ctx.strokeStyle = C.intersection;
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 3]);
@@ -754,13 +711,11 @@ function drawKnapsack() {
     ctx.fillText(`cap=${cap}`, kx + kw + 8, capY + 4);
   }
 
-  // Capacity label above container
   ctx.fillStyle = C.textDim;
   ctx.font = 'bold 10px JetBrains Mono, Fira Code, Consolas, monospace';
   ctx.textAlign = 'center';
   ctx.fillText(`KNAPSACK  (W=${state.capacity})`, kx + kw / 2, ky - 12);
 
-  // Capacity tick marks
   for (let w = 0; w <= state.capacity; w++) {
     const my = ky + kh - w * unitH;
     ctx.strokeStyle = 'rgba(200,200,208,0.07)';
@@ -778,7 +733,6 @@ function drawKnapsack() {
     }
   }
 
-  // Stack items in the bag from the bottom
   const sorted = [...bag].sort((a, b) => a - b);
   let fillY = ky + kh;
 
@@ -801,7 +755,6 @@ function drawKnapsack() {
     ctx.stroke();
     ctx.restore();
 
-    // Label inside block
     const labelColor = useGreen ? C.lineV : ic.label;
     ctx.fillStyle = labelColor;
     ctx.textAlign = 'center';
@@ -822,7 +775,6 @@ function drawKnapsack() {
     ctx.textBaseline = 'alphabetic';
   }
 
-  // Summary below knapsack
   if (sorted.length > 0) {
     const totalW = sorted.reduce((s, i) => s + state.items[i].weight, 0);
     const totalV = sorted.reduce((s, i) => s + state.items[i].value, 0);
@@ -866,8 +818,6 @@ function drawTitle() {
   ctx.fillText(label, cw / 2, 20);
   ctx.textAlign = 'left';
 }
-
-// ── DS Panel: DP Table ──
 
 function renderDPTable() {
   const container = document.getElementById('ks-table-container');
@@ -926,8 +876,6 @@ function renderDPTable() {
   container.innerHTML = html;
 }
 
-// ── DS Panel: Step Inspector ──
-
 function renderStepInspector() {
   const inspEl = document.getElementById('ks-inspector');
   const stepEl = document.getElementById('ks-step-count');
@@ -966,7 +914,6 @@ function renderStepInspector() {
     h += '</div>';
   }
 
-  // Bag contents
   const bag = visibleBag();
   if (bag.size > 0) {
     const totalW = [...bag].reduce((s, i) => s + state.items[i].weight, 0);
@@ -993,8 +940,6 @@ function renderStepInspector() {
 
   inspEl.innerHTML = h;
 }
-
-// ── Controls ──
 
 function updateControls() {
   const run = document.getElementById('btn-run');

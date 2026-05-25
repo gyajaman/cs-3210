@@ -1,3 +1,5 @@
+import { C } from '../theme.js';
+
 export const id = 'radix-sort';
 export const title = 'Radix Sort (LSD)';
 export const categories = ['sorting'];
@@ -8,21 +10,6 @@ let cw, ch, dpr;
 let state, listeners;
 let delayTimer, delayResolve;
 let animFrameId;
-
-const C = {
-  accent:       '#7c4dff',
-  accentLight:  '#a48fff',
-  accentDim:    'rgba(124,77,255,0.15)',
-  lineH:        '#4fc3f7',
-  lineV:        '#66bb6a',
-  sweep:        '#ef5350',
-  intersection: '#ffca28',
-  activeLine:   '#ce93d8',
-  text:         '#c8c8d0',
-  textDim:      '#666680',
-  textMuted:    '#44445a',
-  bgCanvas:     '#0d1117',
-};
 
 // 10 distinct bucket colors for digits 0-9
 const BUCKET_COLORS = [

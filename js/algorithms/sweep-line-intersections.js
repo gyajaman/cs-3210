@@ -116,7 +116,7 @@ function setupDOM() {
 
   els.emptyState.innerHTML = `
     <div class="es-title">Orthogonal Line Intersections</div>
-    <div class="es-sub">Click and drag to draw lines, then click Find Intersections</div>
+    <div class="es-sub">Click and drag to draw lines, then click Visualize</div>
   `;
 
   canvas = els.canvas;

@@ -1,3 +1,5 @@
+import { C } from '../theme.js';
+
 export const id = 'optimal-triangulation';
 export const title = 'Optimal Polygon Triangulation';
 export const categories = ['dynamic-programming'];
@@ -8,21 +10,6 @@ let cw, ch, dpr;
 let state, listeners;
 let delayTimer, delayResolve;
 let animFrameId;
-
-const C = {
-  accent:       '#7c4dff',
-  accentLight:  '#a48fff',
-  accentDim:    'rgba(124,77,255,0.15)',
-  lineH:        '#4fc3f7',
-  lineV:        '#66bb6a',
-  sweep:        '#ef5350',
-  intersection: '#ffca28',
-  activeLine:   '#ce93d8',
-  text:         '#c8c8d0',
-  textDim:      '#666680',
-  textMuted:    '#44445a',
-  bgCanvas:     '#0d1117',
-};
 
 const TRI_FILLS = [
   'rgba(124,77,255,0.10)',
@@ -633,7 +620,7 @@ function drawVertices() {
     } else if (vState === 'active') {
       ctx.shadowColor = C.accent;
       ctx.shadowBlur = 10;
-      ctx.fillStyle = 'rgba(124,77,255,0.15)';
+      ctx.fillStyle = C.accentDim;
     } else if (vState === 'backtrack') {
       ctx.shadowColor = C.lineV;
       ctx.shadowBlur = 10;

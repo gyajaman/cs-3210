@@ -110,7 +110,7 @@ function setupDOM() {
         <span class="ds-count" id="ka-node-count"></span>
       </div>
       <div id="ka-node-list" class="mp-scroll">
-        <div class="ev-empty">Enter two numbers, then click Visualize</div>
+        <div class="ev-empty">Enter two positive integers, then click Visualize</div>
       </div>
     </div>
     <div class="ds-section ka-section-inspector">
@@ -127,7 +127,7 @@ function setupDOM() {
   els.infoPanel.innerHTML = `
     <div id="info-status">
       <span class="phase drawing">Input</span>
-      Enter two integers to multiply using Karatsuba's method
+      Enter two positive integers to multiply using Karatsuba's method
     </div>
     <div class="info-metrics">
       <div class="info-metric"><span class="label">Digits</span><span class="value" id="m-digits">-</span></div>
@@ -139,7 +139,7 @@ function setupDOM() {
 
   els.emptyState.innerHTML = `
     <div class="es-title">Karatsuba Multiplication</div>
-    <div class="es-sub">Enter two integers and click Visualize to see the recursive decomposition</div>
+    <div class="es-sub">Enter two positive integers and click Visualize to see the recursive decomposition</div>
   `;
 
   canvas = els.canvas;
@@ -235,6 +235,13 @@ function loadExample() {
   state.xInput = '1234';
   state.yInput = '5678';
   updateControls();
+}
+
+function parsePositiveIntegerInput(value) {
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return null;
+  const normalized = trimmed.replace(/^0+/, '');
+  return normalized === '' ? null : normalized;
 }
 
 // ── Karatsuba Trace Builder ──
@@ -351,11 +358,9 @@ function buildTrace(xStr, yStr) {
 // ── Visualization Control ──
 
 function startVisualization() {
-  let x = state.xInput.replace(/[^0-9]/g, '');
-  let y = state.yInput.replace(/[^0-9]/g, '');
-  x = x.replace(/^0+/, '') || '0';
-  y = y.replace(/^0+/, '') || '0';
-  if (x === '' || y === '' || x === '0' || y === '0') {
+  const x = parsePositiveIntegerInput(state.xInput);
+  const y = parsePositiveIntegerInput(state.yInput);
+  if (!x || !y) {
     updateStatus('Enter two positive integers');
     return;
   }
@@ -577,7 +582,7 @@ function resetVisualization() {
 
   els.emptyState.classList.remove('hidden');
   updateControls();
-  updateStatus('Enter two integers to multiply using Karatsuba\'s method');
+  updateStatus('Enter two positive integers to multiply using Karatsuba\'s method');
   updateMetrics();
   renderNodeList();
   renderInspector();
@@ -937,7 +942,7 @@ function renderNodeList() {
   if (!listEl || !countEl) return;
 
   if (state.nodes.length === 0) {
-    listEl.innerHTML = '<div class="ev-empty">Enter two numbers, then click Visualize</div>';
+    listEl.innerHTML = '<div class="ev-empty">Enter two positive integers, then click Visualize</div>';
     countEl.textContent = '';
     return;
   }
@@ -1043,8 +1048,8 @@ function updateControls() {
   const isInput = state.phase === 'input';
   const running = state.phase === 'running';
 
-  const hasInput = state.xInput.replace(/[^0-9]/g, '').replace(/^0+/, '') !== ''
-                && state.yInput.replace(/[^0-9]/g, '').replace(/^0+/, '') !== '';
+  const hasInput = parsePositiveIntegerInput(state.xInput) !== null
+                && parsePositiveIntegerInput(state.yInput) !== null;
   run.disabled = !isInput || !hasInput;
   step.disabled = !running || state.isPlaying || state.isStepping || state.trace.length === 0;
   play.disabled = !running || state.isStepping || state.trace.length === 0;
@@ -1080,9 +1085,9 @@ function updateMetrics() {
   if (!digitsEl) return;
 
   if (state.phase === 'input') {
-    const x = state.xInput.replace(/[^0-9]/g, '').replace(/^0+/, '') || '0';
-    const y = state.yInput.replace(/[^0-9]/g, '').replace(/^0+/, '') || '0';
-    digitsEl.textContent = `${Math.max(x.length, y.length)}`;
+    const x = parsePositiveIntegerInput(state.xInput);
+    const y = parsePositiveIntegerInput(state.yInput);
+    digitsEl.textContent = x && y ? `${Math.max(x.length, y.length)}` : '-';
     nodesEl.textContent = '-';
     depthEl.textContent = '-';
     resultEl.textContent = '-';

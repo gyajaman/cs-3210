@@ -14,6 +14,8 @@
   --text-muted: #44445a;
   --border: #1e1e38;
   --accent: #7c4dff;
+  --accent-light: #a48fff;
+  --accent-dim: rgba(124,77,255,0.15);
   --line-h: #4fc3f7;
   --line-v: #66bb6a;
   --sweep: #ef5350;
@@ -184,7 +186,7 @@ html, body {
 .algo-badge {
   font-size: 9px;
   padding: 2px 7px;
-  background: rgba(124,77,255,0.15);
+  background: var(--accent-dim);
   color: var(--accent);
   border-radius: 10px;
   text-transform: uppercase;
@@ -845,3 +847,44 @@ input[type="range"] { width: 70px; accent-color: var(--accent); }
 .dj-row-current td { background: rgba(255,202,40,0.12); color: #ffca28; }
 .dj-row-visited td { background: rgba(102,187,106,0.06); color: #a5d6a7; }
 .dj-row-queued td { background: rgba(124,77,255,0.06); color: #b39ddb; }
+
+/* Bellman-Ford */
+.bf-section-table { flex: 0 0 46%; max-height: 46%; }
+.bf-section-inspector { flex: 1; }
+.bf-row-current td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.bf-row-from td { background: rgba(79,195,247,0.08); color: #81d4fa; }
+.bf-row-reached td { background: rgba(102,187,106,0.05); color: #a5d6a7; }
+
+/* MST */
+.mst-section-table { flex: 0 0 48%; max-height: 48%; }
+.mst-section-inspector { flex: 1; }
+.mst-row-current td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.mst-row-candidate td { background: rgba(124,77,255,0.08); color: #b39ddb; }
+.mst-row-selected td { background: rgba(102,187,106,0.10); color: #a5d6a7; }
+.mst-row-rejected td { background: rgba(239,83,80,0.08); color: #ef9a9a; opacity: 0.8; }
+
+/* DFS */
+.dfs-row-active td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.dfs-row-done td { background: rgba(102,187,106,0.06); color: #a5d6a7; }
+.dfs-row-stack td { background: rgba(124,77,255,0.06); color: #b39ddb; }
+
+/* Fractional Knapsack */
+.gk-row-current td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.gk-row-taken td { background: rgba(102,187,106,0.06); color: #a5d6a7; }
+.gk-row-partial td { background: rgba(124,77,255,0.06); color: #b39ddb; }
+
+/* Job Scheduling */
+.js-row-current td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.js-row-scheduled td { background: rgba(102,187,106,0.06); color: #a5d6a7; }
+
+/* Rabin-Karp */
+.rk-row-match td { background: rgba(102,187,106,0.06); color: #a5d6a7; }
+.rk-row-spurious td { background: rgba(255,202,40,0.12); color: #ffca28; }
+.bf-row-negative td { background: rgba(239,83,80,0.12); color: #ef9a9a; }
+
+/* Heap Merge */
+.hm-section-array { flex: 0 0 46%; max-height: 46%; }
+.hm-section-inspector { flex: 1; }
+.hm-cell-compare { color: #4fc3f7; background: rgba(79,195,247,0.15); }
+.hm-cell-smallest { color: #ef5350; background: rgba(239,83,80,0.15); font-weight: 700; }
+.hm-cell-swap { color: #ffca28; background: rgba(255,202,40,0.15); }

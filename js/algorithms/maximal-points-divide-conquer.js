@@ -138,7 +138,7 @@ function setupDOM() {
 
   els.emptyState.innerHTML = `
     <div class="es-title">Maximal Points: Divide & Conquer</div>
-    <div class="es-sub">Click to place points, then click Find Maximal to run the algorithm</div>
+    <div class="es-sub">Click to place points, then click Visualize to run the algorithm</div>
   `;
 
   canvas = els.canvas;

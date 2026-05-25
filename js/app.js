@@ -7,6 +7,14 @@ import * as radixSort from './algorithms/radix-sort.js';
 import * as optimalTriangulation from './algorithms/optimal-triangulation.js';
 import * as knapsack01 from './algorithms/knapsack-01.js';
 import * as dijkstra from './algorithms/dijkstra.js';
+import * as bellmanFord from './algorithms/bellman-ford.js';
+import * as primMst from './algorithms/prim-mst.js';
+import * as kruskalMst from './algorithms/kruskal-mst.js';
+import * as knapsackGreedy from './algorithms/knapsack-greedy.js';
+import * as jobScheduling from './algorithms/job-scheduling.js';
+import * as dfs from './algorithms/dfs.js';
+import * as rabinKarp from './algorithms/rabin-karp.js';
+import * as heapMerge from './algorithms/heap-merge.js';
 
 const algorithms = [
   sweepLineIntersections,
@@ -17,16 +25,27 @@ const algorithms = [
   radixSort,
   optimalTriangulation,
   knapsack01,
+  knapsackGreedy,
+  jobScheduling,
   dijkstra,
+  bellmanFord,
+  primMst,
+  kruskalMst,
+  dfs,
+  rabinKarp,
+  heapMerge,
 ];
 
 const categoryNames = {
   'sorting': 'Sorting',
   'sweep-line': 'Sweep Line',
   'divide-conquer': 'Divide & Conquer',
+  'greedy': 'Greedy',
   'dynamic-programming': 'Dynamic Programming',
   'graph': 'Graph Algorithms',
+  'string': 'String Algorithms',
   'geometry': 'Computational Geometry',
+  'data-structures': 'Data Structures',
 };
 
 const categoryOrder = Object.keys(categoryNames);
@@ -148,7 +167,6 @@ function setupResizablePanel(panel, property, minWidth = 150, maxWidth = 600) {
   let startX = 0;
   let startWidth = 0;
 
-  // Load saved width from localStorage
   const savedWidth = localStorage.getItem(property);
   if (savedWidth) {
     document.documentElement.style.setProperty(property, savedWidth);
@@ -182,7 +200,6 @@ function setupResizablePanel(panel, property, minWidth = 150, maxWidth = 600) {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
 
-      // Save width to localStorage
       const currentWidth = getComputedStyle(document.documentElement).getPropertyValue(property);
       localStorage.setItem(property, currentWidth);
     }

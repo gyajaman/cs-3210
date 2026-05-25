@@ -1,7 +1,7 @@
 import { C } from '../theme.js';
 
-export const id = 'dijkstra';
-export const title = "Dijkstra's Algorithm";
+export const id = 'dfs';
+export const title = 'Depth-First Search';
 export const categories = ['graph'];
 export const badge = 'Graph';
 
@@ -30,11 +30,15 @@ export function init(elements) {
     n: 0,
     phase: 'input',
 
-    dist: [],
-    prev: [],
     visited: new Set(),
-    pq: [],
+    stack: [],
     treeEdges: new Set(),
+    backEdges: new Set(),
+    crossEdges: new Set(),
+    discovery: [],
+    finish: [],
+    parent: [],
+    timeCounter: 0,
 
     currentNode: -1,
     currentEdge: null,
@@ -55,7 +59,7 @@ export function init(elements) {
   updateEmptyState();
   updateStatus('Enter edges and source, then click Visualize.');
   updateMetrics();
-  renderDistTable();
+  renderPanel();
   renderStepInspector();
   render();
 }
@@ -78,11 +82,11 @@ function setupDOM() {
   els.toolbarControls.innerHTML = `
     <div class="input-group">
       <label>Edges</label>
-      <input type="text" id="dj-edges" value="" placeholder="0-1:4, 0-2:1, 2-1:2" style="width:260px">
+      <input type="text" id="dfs-edges" value="" placeholder="0-1, 0-2, 1-3, 2-3, 3-4" style="width:260px">
     </div>
     <div class="input-group">
       <label>Source</label>
-      <input type="text" id="dj-source" value="" placeholder="0" style="width:30px">
+      <input type="text" id="dfs-source" value="" placeholder="0" style="width:30px">
     </div>
     <button id="btn-example">Example</button>
     <button id="btn-random">Random</button>
@@ -99,21 +103,21 @@ function setupDOM() {
   `;
 
   els.dsPanel.innerHTML = `
-    <div class="ds-section dj-section-table">
+    <div class="ds-section dfs-section-table">
       <div class="ds-header">
-        <span>Distances & PQ</span>
-        <span class="ds-count" id="dj-table-count"></span>
+        <span>Discovery / Finish Times</span>
+        <span class="ds-count" id="dfs-table-count"></span>
       </div>
-      <div id="dj-table-container" class="ot-scroll">
+      <div id="dfs-table-container" class="ot-scroll">
         <div class="ev-empty">Enter edges and source, then click Visualize</div>
       </div>
     </div>
-    <div class="ds-section dj-section-inspector">
+    <div class="ds-section dfs-section-inspector">
       <div class="ds-header">
         <span>Step Inspector</span>
-        <span class="ds-count" id="dj-step-count"></span>
+        <span class="ds-count" id="dfs-step-count"></span>
       </div>
-      <div id="dj-inspector" class="mp-inspector">
+      <div id="dfs-inspector" class="mp-inspector">
         <div class="ev-empty">No active step yet</div>
       </div>
     </div>
@@ -122,19 +126,19 @@ function setupDOM() {
   els.infoPanel.innerHTML = `
     <div id="info-status">
       <span class="phase drawing">Input</span>
-      Enter edges and source, then click Visualize
+      Enter directed edges, then click Visualize
     </div>
     <div class="info-metrics">
       <div class="info-metric"><span class="label">Nodes</span><span class="value" id="m-nodes">0</span></div>
       <div class="info-metric"><span class="label">Visited</span><span class="value" id="m-visited">–</span></div>
-      <div class="info-metric"><span class="label">PQ Size</span><span class="value" id="m-pq">–</span></div>
-      <div class="info-metric"><span class="label">Current</span><span class="value" id="m-current">–</span></div>
+      <div class="info-metric"><span class="label">Stack</span><span class="value" id="m-stack">–</span></div>
+      <div class="info-metric"><span class="label">Time</span><span class="value" id="m-time">–</span></div>
     </div>
   `;
 
   els.emptyState.innerHTML = `
-    <div class="es-title">Dijkstra's Algorithm</div>
-    <div class="es-sub">Enter directed edges as from-to:weight, or click Example</div>
+    <div class="es-title">Depth-First Search</div>
+    <div class="es-sub">Enter directed edges as from-to, or click Example</div>
   `;
 
   canvas = els.canvas;
@@ -162,8 +166,8 @@ function bindEvents() {
   on(document.getElementById('btn-play'), 'click', togglePlay);
   on(document.getElementById('btn-reset'), 'click', resetVisualization);
   on(document.getElementById('speed'), 'input', updateSpeed);
-  on(document.getElementById('dj-edges'), 'input', onInputChange);
-  on(document.getElementById('dj-source'), 'input', onInputChange);
+  on(document.getElementById('dfs-edges'), 'input', onInputChange);
+  on(document.getElementById('dfs-source'), 'input', onInputChange);
 }
 
 function handleResize() {
@@ -175,20 +179,19 @@ function handleResize() {
 function onInputChange() { updateControls(); }
 
 function parseInput() {
-  const edgesStr = document.getElementById('dj-edges').value.trim();
-  const sourceStr = document.getElementById('dj-source').value.trim();
+  const edgesStr = document.getElementById('dfs-edges').value.trim();
+  const sourceStr = document.getElementById('dfs-source').value.trim();
 
   const edges = [];
   let maxNode = -1;
 
   for (const part of edgesStr.split(/[,;]\s*/)) {
-    const m = part.trim().match(/^(\d+)\s*-\s*(\d+)\s*:\s*(\d+)$/);
+    const m = part.trim().match(/^(\d+)\s*-\s*(\d+)$/);
     if (!m) continue;
     const from = parseInt(m[1], 10);
     const to = parseInt(m[2], 10);
-    const weight = parseInt(m[3], 10);
-    if (from === to || weight <= 0) continue;
-    edges.push({ from, to, weight });
+    if (from === to) continue;
+    edges.push({ from, to });
     maxNode = Math.max(maxNode, from, to);
   }
 
@@ -205,8 +208,8 @@ function inputValid() {
 
 function loadExample() {
   if (state.phase !== 'input') resetVisualization();
-  document.getElementById('dj-edges').value = '0-1:4, 0-2:1, 2-1:2, 1-3:1, 2-3:5, 3-4:3, 4-5:2';
-  document.getElementById('dj-source').value = '0';
+  document.getElementById('dfs-edges').value = '0-1, 0-2, 1-3, 2-3, 3-4, 4-2';
+  document.getElementById('dfs-source').value = '0';
   updateControls();
 }
 
@@ -226,22 +229,21 @@ function loadRandom() {
     const from = added[Math.floor(Math.random() * added.length)];
     const to = remaining.pop();
     added.push(to);
-    const w = 1 + Math.floor(Math.random() * 9);
-    edgeStrs.push(`${from}-${to}:${w}`);
+    edgeStrs.push(`${from}-${to}`);
     edgeSet.add(`${from},${to}`);
   }
 
-  const extra = Math.floor(n * 0.7);
+  const extra = Math.floor(n * 0.6);
   for (let k = 0; k < extra; k++) {
     const a = Math.floor(Math.random() * n);
     let b = Math.floor(Math.random() * n);
     if (a === b || edgeSet.has(`${a},${b}`)) continue;
     edgeSet.add(`${a},${b}`);
-    edgeStrs.push(`${a}-${b}:${1 + Math.floor(Math.random() * 9)}`);
+    edgeStrs.push(`${a}-${b}`);
   }
 
-  document.getElementById('dj-edges').value = edgeStrs.join(', ');
-  document.getElementById('dj-source').value = '0';
+  document.getElementById('dfs-edges').value = edgeStrs.join(', ');
+  document.getElementById('dfs-source').value = '0';
   updateControls();
 }
 
@@ -261,53 +263,55 @@ function computePositions(n) {
 
 function buildTrace(edges, source, n) {
   const adj = Array.from({ length: n }, () => []);
-  for (const e of edges) adj[e.from].push({ to: e.to, weight: e.weight });
+  for (const e of edges) adj[e.from].push(e.to);
 
-  const dist = Array(n).fill(Infinity);
-  const prev = Array(n).fill(-1);
-  const visited = new Set();
   const trace = [];
+  const visited = new Set();
+  const finished = new Set();
+  const discovery = Array(n).fill(-1);
+  const finish = Array(n).fill(-1);
+  const parent = Array(n).fill(-1);
+  let time = 0;
 
-  dist[source] = 0;
   trace.push({ type: 'init', source, n });
 
-  const pq = [{ node: source, dist: 0 }];
-
-  while (pq.length > 0) {
-    pq.sort((a, b) => a.dist - b.dist);
-    const { node: u } = pq.shift();
-    if (visited.has(u)) continue;
-
-    trace.push({ type: 'visit', node: u, dist: dist[u] });
+  function dfs(u) {
+    time++;
+    discovery[u] = time;
     visited.add(u);
+    trace.push({ type: 'discover', node: u, time, parent: parent[u] });
 
-    for (const { to: v, weight: w } of adj[u]) {
-      const newDist = dist[u] + w;
-      if (visited.has(v)) {
-        trace.push({
-          type: 'relax', from: u, to: v, weight: w,
-          oldDist: dist[v], newDist, improved: false, reason: 'visited',
-        });
-      } else if (newDist < dist[v]) {
-        const oldDist = dist[v];
-        dist[v] = newDist;
-        prev[v] = u;
-        pq.push({ node: v, dist: newDist });
-        trace.push({
-          type: 'relax', from: u, to: v, weight: w,
-          oldDist, newDist, improved: true,
-        });
+    for (const v of adj[u]) {
+      if (!visited.has(v)) {
+        parent[v] = u;
+        trace.push({ type: 'explore-edge', from: u, to: v, classification: 'tree' });
+        dfs(v);
+        trace.push({ type: 'return', from: v, to: u });
+      } else if (!finished.has(v)) {
+        trace.push({ type: 'explore-edge', from: u, to: v, classification: 'back' });
       } else {
-        trace.push({
-          type: 'relax', from: u, to: v, weight: w,
-          oldDist: dist[v], newDist, improved: false, reason: 'no-improvement',
-        });
+        const cls = discovery[u] < discovery[v] ? 'forward' : 'cross';
+        trace.push({ type: 'explore-edge', from: u, to: v, classification: cls });
       }
+    }
+
+    time++;
+    finish[u] = time;
+    finished.add(u);
+    trace.push({ type: 'finish', node: u, time });
+  }
+
+  dfs(source);
+
+  for (let i = 0; i < n; i++) {
+    if (!visited.has(i)) {
+      parent[i] = -1;
+      dfs(i);
     }
   }
 
-  trace.push({ type: 'complete', distances: [...dist], predecessors: [...prev] });
-  return { trace, dist, prev, adj };
+  trace.push({ type: 'complete' });
+  return trace;
 }
 
 function startVisualization() {
@@ -320,29 +324,32 @@ function startVisualization() {
   state.phase = 'running';
   state.positions = computePositions(n);
 
-  const { trace } = buildTrace(edges, source, n);
-  state.trace = trace;
+  state.trace = buildTrace(edges, source, n);
   state.currentStep = -1;
 
-  state.dist = Array(n).fill(Infinity);
-  state.prev = Array(n).fill(-1);
   state.visited = new Set();
-  state.pq = [];
+  state.stack = [];
   state.treeEdges = new Set();
+  state.backEdges = new Set();
+  state.crossEdges = new Set();
+  state.discovery = Array(n).fill(-1);
+  state.finish = Array(n).fill(-1);
+  state.parent = Array(n).fill(-1);
+  state.timeCounter = 0;
   state.currentNode = -1;
   state.currentEdge = null;
 
   state.isPlaying = false;
   state.isStepping = false;
 
-  document.getElementById('dj-edges').disabled = true;
-  document.getElementById('dj-source').disabled = true;
+  document.getElementById('dfs-edges').disabled = true;
+  document.getElementById('dfs-source').disabled = true;
 
   updateControls();
   updateEmptyState();
-  updateStatus('Trace ready. Step through or press Play.');
+  updateStatus('Trace ready. Step through DFS or press Play.');
   updateMetrics();
-  renderDistTable();
+  renderPanel();
   renderStepInspector();
   render();
 }
@@ -350,52 +357,62 @@ function startVisualization() {
 function applyEvent(ev) {
   switch (ev.type) {
     case 'init':
-      state.dist[ev.source] = 0;
-      state.pq = [{ node: ev.source, dist: 0 }];
       state.currentNode = -1;
       state.currentEdge = null;
-      updateStatus(`Source = ${ev.source}. Distance set to 0. All others ∞.`);
+      updateStatus(`DFS from source ${ev.source}. ${ev.n} nodes.`);
       break;
 
-    case 'visit':
+    case 'discover':
       state.visited.add(ev.node);
+      state.stack.push(ev.node);
       state.currentNode = ev.node;
       state.currentEdge = null;
-      state.pq = state.pq.filter(e => e.node !== ev.node);
-      updateStatus(`Visit node ${ev.node} (d = ${ev.dist}). Examining outgoing edges…`);
+      state.timeCounter = ev.time;
+      state.discovery[ev.node] = ev.time;
+      state.parent[ev.node] = ev.parent;
+      updateStatus(`Discover node ${ev.node} (d=${ev.time}). Push onto stack.`);
       break;
 
-    case 'relax': {
-      state.currentEdge = { from: ev.from, to: ev.to };
-      if (ev.improved) {
-        state.dist[ev.to] = ev.newDist;
-        state.prev[ev.to] = ev.from;
-        state.pq = state.pq.filter(e => e.node !== ev.to);
-        state.pq.push({ node: ev.to, dist: ev.newDist });
-        state.pq.sort((a, b) => a.dist - b.dist);
-        state.treeEdges = new Set([...state.treeEdges].filter(e => {
-          const [, t] = e.split(',');
-          return parseInt(t) !== ev.to;
-        }));
+    case 'explore-edge':
+      state.currentEdge = { from: ev.from, to: ev.to, classification: ev.classification };
+      if (ev.classification === 'tree') {
         state.treeEdges.add(`${ev.from},${ev.to}`);
-        const oldStr = ev.oldDist === Infinity ? '∞' : ev.oldDist;
-        updateStatus(`Relax ${ev.from}→${ev.to}: d[${ev.to}] = ${oldStr} → ${ev.newDist} (improved)`);
-      } else if (ev.reason === 'visited') {
-        updateStatus(`Edge ${ev.from}→${ev.to}: node ${ev.to} already finalized, skip`);
+        updateStatus(`Tree edge ${ev.from}→${ev.to}: node ${ev.to} undiscovered, recurse.`);
+      } else if (ev.classification === 'back') {
+        state.backEdges.add(`${ev.from},${ev.to}`);
+        updateStatus(`Back edge ${ev.from}→${ev.to}: node ${ev.to} still in stack (cycle!).`);
+      } else if (ev.classification === 'forward') {
+        state.crossEdges.add(`${ev.from},${ev.to}`);
+        updateStatus(`Forward edge ${ev.from}→${ev.to}: node ${ev.to} is descendant.`);
       } else {
-        updateStatus(`Relax ${ev.from}→${ev.to}: d[${ev.to}] = ${ev.oldDist} ≤ ${ev.newDist} (no change)`);
+        state.crossEdges.add(`${ev.from},${ev.to}`);
+        updateStatus(`Cross edge ${ev.from}→${ev.to}: node ${ev.to} in different subtree.`);
       }
       break;
-    }
+
+    case 'return':
+      state.currentNode = ev.to;
+      state.currentEdge = null;
+      updateStatus(`Return from ${ev.from} to ${ev.to}. Continue exploring ${ev.to}.`);
+      break;
+
+    case 'finish':
+      state.stack = state.stack.filter(v => v !== ev.node);
+      state.timeCounter = ev.time;
+      state.finish[ev.node] = ev.time;
+      state.currentNode = state.stack.length > 0 ? state.stack[state.stack.length - 1] : -1;
+      state.currentEdge = null;
+      updateStatus(`Finish node ${ev.node} (f=${ev.time}). Pop from stack.`);
+      break;
 
     case 'complete':
       state.currentNode = -1;
       state.currentEdge = null;
-      updateStatus('Done! All reachable nodes have shortest distances.');
+      updateStatus('DFS complete! All nodes discovered and finished.');
       break;
   }
 
-  renderDistTable();
+  renderPanel();
   renderStepInspector();
   updateMetrics();
   render();
@@ -447,7 +464,7 @@ function finishVisualization() {
   state.isStepping = false;
   updateControls();
   updateMetrics();
-  renderDistTable();
+  renderPanel();
   renderStepInspector();
   render();
 }
@@ -460,24 +477,28 @@ function resetVisualization() {
   state.edges = [];
   state.n = 0;
   state.positions = [];
-  state.dist = [];
-  state.prev = [];
   state.visited = new Set();
-  state.pq = [];
+  state.stack = [];
   state.treeEdges = new Set();
+  state.backEdges = new Set();
+  state.crossEdges = new Set();
+  state.discovery = [];
+  state.finish = [];
+  state.parent = [];
+  state.timeCounter = 0;
   state.currentNode = -1;
   state.currentEdge = null;
   state.isPlaying = false;
   state.isStepping = false;
 
-  document.getElementById('dj-edges').disabled = false;
-  document.getElementById('dj-source').disabled = false;
+  document.getElementById('dfs-edges').disabled = false;
+  document.getElementById('dfs-source').disabled = false;
 
   updateControls();
   updateEmptyState();
   updateStatus('Enter edges and source, then click Visualize.');
   updateMetrics();
-  renderDistTable();
+  renderPanel();
   renderStepInspector();
   render();
 }
@@ -521,23 +542,31 @@ function drawGrid() {
 }
 
 function drawEdges() {
-  const isCurEdge = (e) => state.currentEdge &&
-    state.currentEdge.from === e.from && state.currentEdge.to === e.to;
+  for (const edge of state.edges) {
+    const key = `${edge.from},${edge.to}`;
+    const isCurrent = state.currentEdge && state.currentEdge.from === edge.from && state.currentEdge.to === edge.to;
+    if (isCurrent) continue;
 
-  for (const edge of state.edges) {
-    if (isCurEdge(edge) || state.treeEdges.has(`${edge.from},${edge.to}`)) continue;
-    drawDirectedEdge(edge, 'rgba(200,200,208,0.18)', 1, false);
-  }
-  for (const edge of state.edges) {
-    if (isCurEdge(edge)) continue;
-    if (state.treeEdges.has(`${edge.from},${edge.to}`)) {
+    if (state.treeEdges.has(key)) {
       drawDirectedEdge(edge, C.lineV, 2, true);
+    } else if (state.backEdges.has(key)) {
+      drawDirectedEdge(edge, '#ef5350', 1.5, true);
+    } else if (state.crossEdges.has(key)) {
+      drawDirectedEdge(edge, '#ce93d8', 1.5, false);
+    } else {
+      drawDirectedEdge(edge, 'rgba(200,200,208,0.18)', 1, false);
     }
   }
+
   if (state.currentEdge) {
     const edge = state.edges.find(e =>
       e.from === state.currentEdge.from && e.to === state.currentEdge.to);
-    if (edge) drawDirectedEdge(edge, C.intersection, 2.5, true);
+    if (edge) {
+      let color = C.intersection;
+      if (state.currentEdge.classification === 'back') color = '#ef5350';
+      else if (state.currentEdge.classification === 'forward' || state.currentEdge.classification === 'cross') color = '#ce93d8';
+      drawDirectedEdge(edge, color, 2.5, true);
+    }
   }
 }
 
@@ -587,8 +616,8 @@ function drawDirectedEdge(edge, color, lineWidth, glow) {
   ctx.stroke();
 
   const arrowAngle = Math.atan2(euy, eux);
-  const aLen = 9;
-  const aHalf = Math.PI / 7;
+  const aLen = 10;
+  const aHalf = Math.PI / 6;
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(tipX, tipY);
@@ -599,88 +628,89 @@ function drawDirectedEdge(edge, color, lineWidth, glow) {
 
   ctx.restore();
 
-  const labelX = 0.25 * p1.x + 0.5 * mx + 0.25 * p2.x;
-  const labelY = 0.25 * p1.y + 0.5 * my + 0.25 * p2.y;
-  const lOff = curveAmt > 0 ? 3 : 12;
-  const lx = labelX + px * lOff;
-  const ly = labelY + py * lOff;
-
-  ctx.fillStyle = glow ? color : C.textDim;
-  ctx.font = 'bold 10px JetBrains Mono, Fira Code, Consolas, monospace';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(String(edge.weight), lx, ly);
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
+  if (state.currentEdge && state.currentEdge.from === edge.from && state.currentEdge.to === edge.to) {
+    const cls = state.currentEdge.classification;
+    if (cls !== 'tree') {
+      ctx.fillStyle = color;
+      ctx.font = 'bold 9px JetBrains Mono, Fira Code, Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(cls, mx, my - 10);
+      ctx.textAlign = 'left';
+    }
+  }
 }
 
 function drawNodes() {
+  const isFinal = state.phase === 'complete';
+
   for (let i = 0; i < state.n; i++) {
     const pos = state.positions[i];
-    const isCurrent = i === state.currentNode;
     const isVisited = state.visited.has(i);
-    const isQueued = state.pq.some(e => e.node === i);
-    const isSource = i === state.source;
+    const isFinished = state.finish[i] >= 0;
+    const isCurrent = i === state.currentNode;
+    const inStack = state.stack.includes(i);
 
-    if (isSource && !isCurrent) {
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, NODE_R + 5, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(124,77,255,0.25)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+    let fillColor, strokeColor, glowColor, textColor;
+
+    if (isFinal && isFinished) {
+      fillColor = 'rgba(102,187,106,0.15)';
+      strokeColor = C.lineV;
+      glowColor = C.lineV;
+      textColor = C.lineV;
+    } else if (isCurrent) {
+      fillColor = 'rgba(255,202,40,0.15)';
+      strokeColor = C.intersection;
+      glowColor = C.intersection;
+      textColor = C.intersection;
+    } else if (inStack) {
+      fillColor = 'rgba(124,77,255,0.12)';
+      strokeColor = '#7c4dff';
+      glowColor = '#7c4dff';
+      textColor = '#b39ddb';
+    } else if (isFinished) {
+      fillColor = 'rgba(102,187,106,0.1)';
+      strokeColor = C.lineV;
+      glowColor = null;
+      textColor = C.lineV;
+    } else if (isVisited) {
+      fillColor = 'rgba(124,77,255,0.08)';
+      strokeColor = '#7c4dff';
+      glowColor = null;
+      textColor = '#b39ddb';
+    } else {
+      fillColor = 'rgba(143,149,173,0.06)';
+      strokeColor = 'rgba(200,200,208,0.3)';
+      glowColor = null;
+      textColor = C.text;
     }
 
     ctx.save();
-    if (isCurrent) {
-      ctx.shadowColor = C.intersection;
+    if (glowColor) {
+      ctx.shadowColor = glowColor;
       ctx.shadowBlur = 14;
-    } else if (isVisited) {
-      ctx.shadowColor = C.lineV;
-      ctx.shadowBlur = 6;
     }
 
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, NODE_R, 0, Math.PI * 2);
-
-    if (isCurrent) {
-      ctx.fillStyle = 'rgba(255,202,40,0.20)';
-      ctx.strokeStyle = C.intersection;
-      ctx.lineWidth = 2.5;
-    } else if (isVisited) {
-      ctx.fillStyle = 'rgba(102,187,106,0.15)';
-      ctx.strokeStyle = C.lineV;
-      ctx.lineWidth = 2;
-    } else if (isQueued) {
-      ctx.fillStyle = C.accentDim;
-      ctx.strokeStyle = C.accent;
-      ctx.lineWidth = 2;
-    } else {
-      ctx.fillStyle = 'rgba(200,200,208,0.06)';
-      ctx.strokeStyle = 'rgba(200,200,208,0.25)';
-      ctx.lineWidth = 1.5;
-    }
-
+    ctx.fillStyle = fillColor;
     ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = isCurrent ? 2.5 : 1.5;
     ctx.stroke();
     ctx.restore();
 
-    ctx.fillStyle = isCurrent ? C.intersection :
-                    isVisited ? C.lineV :
-                    isQueued ? C.accentLight : C.text;
-    ctx.font = 'bold 14px JetBrains Mono, Fira Code, Consolas, monospace';
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 13px JetBrains Mono, Fira Code, Consolas, monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(i), pos.x, pos.y);
 
-    const d = state.dist[i];
-    const distText = d === undefined ? '' : (d === Infinity ? '∞' : String(d));
-    if (distText) {
-      ctx.font = '11px JetBrains Mono, Fira Code, Consolas, monospace';
-      ctx.fillStyle = d === Infinity ? C.textMuted :
-                      isCurrent ? C.intersection :
-                      isVisited ? C.lineV :
-                      isQueued ? C.accentLight : C.textDim;
-      ctx.fillText(`d=${distText}`, pos.x, pos.y + NODE_R + 14);
+    if (state.discovery[i] >= 0) {
+      const dStr = String(state.discovery[i]);
+      const fStr = state.finish[i] >= 0 ? String(state.finish[i]) : '?';
+      ctx.font = '9px JetBrains Mono, Fira Code, Consolas, monospace';
+      ctx.fillStyle = C.textDim;
+      ctx.fillText(`${dStr}/${fStr}`, pos.x, pos.y + NODE_R + 14);
     }
 
     ctx.textAlign = 'left';
@@ -694,25 +724,23 @@ function drawTitle() {
 
   let label, color;
   if (ev.type === 'complete') {
-    label = 'Shortest paths found';
+    label = 'DFS Complete';
     color = C.lineV;
-  } else if (ev.type === 'visit') {
-    label = `Visiting node ${ev.node}  (d = ${ev.dist})`;
+  } else if (ev.type === 'discover') {
+    label = `Discover node ${ev.node} (time=${ev.time})`;
     color = C.intersection;
-  } else if (ev.type === 'relax') {
-    if (ev.improved) {
-      const oldStr = ev.oldDist === Infinity ? '∞' : ev.oldDist;
-      label = `Relax ${ev.from}→${ev.to}:  d[${ev.to}] = ${oldStr} → ${ev.newDist}  ✓`;
-      color = C.lineV;
-    } else if (ev.reason === 'visited') {
-      label = `Edge ${ev.from}→${ev.to}:  node ${ev.to} finalized, skip`;
-      color = C.textDim;
-    } else {
-      label = `Relax ${ev.from}→${ev.to}:  d[${ev.to}] = ${ev.oldDist} ≤ ${ev.newDist}  ✗`;
-      color = C.sweep;
-    }
+  } else if (ev.type === 'finish') {
+    label = `Finish node ${ev.node} (time=${ev.time})`;
+    color = C.lineV;
+  } else if (ev.type === 'explore-edge') {
+    label = `Edge ${ev.from}→${ev.to}: ${ev.classification}`;
+    color = ev.classification === 'tree' ? C.lineV :
+            ev.classification === 'back' ? '#ef5350' : '#ce93d8';
+  } else if (ev.type === 'return') {
+    label = `Backtrack ${ev.from}→${ev.to}`;
+    color = C.accent;
   } else if (ev.type === 'init') {
-    label = `Source = ${ev.source}, d[${ev.source}] = 0`;
+    label = `DFS from node ${ev.source}`;
     color = C.accent;
   } else {
     return;
@@ -725,9 +753,9 @@ function drawTitle() {
   ctx.textAlign = 'left';
 }
 
-function renderDistTable() {
-  const container = document.getElementById('dj-table-container');
-  const countEl = document.getElementById('dj-table-count');
+function renderPanel() {
+  const container = document.getElementById('dfs-table-container');
+  const countEl = document.getElementById('dfs-table-count');
   if (!container || !countEl) return;
 
   if (state.phase === 'input' || state.n === 0) {
@@ -739,50 +767,50 @@ function renderDistTable() {
   countEl.textContent = `${state.visited.size}/${state.n}`;
 
   let html = '<table class="ot-dp-table"><thead><tr>';
-  html += '<th>Node</th><th>d</th><th>prev</th><th>Status</th>';
+  html += '<th>Node</th><th>d</th><th>f</th><th>Parent</th><th>State</th>';
   html += '</tr></thead><tbody>';
 
   for (let i = 0; i < state.n; i++) {
-    const isCurrent = i === state.currentNode;
     const isVisited = state.visited.has(i);
-    const isQueued = state.pq.some(e => e.node === i);
+    const isFinished = state.finish[i] >= 0;
+    const isCurrent = i === state.currentNode;
+    const inStack = state.stack.includes(i);
 
     let cls = '';
-    if (isCurrent) cls = 'dj-row-current';
-    else if (isVisited) cls = 'dj-row-visited';
-    else if (isQueued) cls = 'dj-row-queued';
+    if (isCurrent) cls = 'dfs-row-active';
+    else if (inStack) cls = 'dfs-row-stack';
+    else if (isFinished) cls = 'dfs-row-done';
 
-    const d = state.dist[i];
-    const distStr = d === Infinity ? '∞' : String(d);
-    const prevStr = state.prev[i] >= 0 ? String(state.prev[i]) : '–';
-    const statusStr = isCurrent ? '▶ visiting' :
-                      isVisited ? '✓ done' :
-                      isQueued ? 'in PQ' : '–';
+    const dStr = state.discovery[i] >= 0 ? state.discovery[i] : '–';
+    const fStr = state.finish[i] >= 0 ? state.finish[i] : '–';
+    const pStr = state.parent[i] >= 0 ? state.parent[i] : (i === state.source ? 'src' : '–');
 
-    html += `<tr class="${cls}"><td>${i}</td><td>${distStr}</td><td>${prevStr}</td><td>${statusStr}</td></tr>`;
+    let stateStr = '';
+    if (isCurrent) stateStr = 'active';
+    else if (inStack) stateStr = 'in stack';
+    else if (isFinished) stateStr = 'done';
+    else if (isVisited) stateStr = 'open';
+    else stateStr = '';
+
+    html += `<tr class="${cls}"><td>${i}</td><td>${dStr}</td><td>${fStr}</td><td>${pStr}</td><td>${stateStr}</td></tr>`;
   }
   html += '</tbody></table>';
 
-  if (state.pq.length > 0) {
-    html += '<div class="dj-pq-section"><div class="mp-label" style="margin-top:10px">Priority Queue</div>';
-    html += '<div class="mp-chip-row">';
-    for (let k = 0; k < state.pq.length; k++) {
-      const item = state.pq[k];
-      const isMin = k === 0;
-      const style = isMin
-        ? 'color:#ffca28;background:rgba(255,202,40,0.12);border-color:rgba(255,202,40,0.3)'
-        : 'color:#b39ddb;background:rgba(124,77,255,0.08);border-color:rgba(124,77,255,0.2)';
-      html += `<span class="mp-chip" style="${style}">${item.node}: d=${item.dist}${isMin ? ' ←min' : ''}</span>`;
-    }
-    html += '</div></div>';
+  html += '<div style="margin-top:8px;padding:4px 8px;">';
+  html += '<span style="font-size:10px;color:var(--text-dim)">Stack: </span>';
+  if (state.stack.length > 0) {
+    html += state.stack.map(v => `<span class="mp-chip" style="color:#b39ddb;background:rgba(124,77,255,0.12);border-color:#7c4dff">${v}</span>`).join('');
+  } else {
+    html += '<span style="font-size:10px;color:var(--text-muted)">empty</span>';
   }
+  html += '</div>';
 
   container.innerHTML = html;
 }
 
 function renderStepInspector() {
-  const inspEl = document.getElementById('dj-inspector');
-  const stepEl = document.getElementById('dj-step-count');
+  const inspEl = document.getElementById('dfs-inspector');
+  const stepEl = document.getElementById('dfs-step-count');
   if (!inspEl || !stepEl) return;
 
   if (state.phase === 'input' || state.trace.length === 0) {
@@ -795,56 +823,46 @@ function renderStepInspector() {
   const ev = state.currentStep >= 0 ? state.trace[state.currentStep] : null;
 
   let h = '';
-  h += `<div class="mp-kv"><span>Current Node</span><strong>${state.currentNode >= 0 ? state.currentNode : '–'}</strong></div>`;
-  h += `<div class="mp-kv"><span>Visited</span><strong>${state.visited.size} / ${state.n}</strong></div>`;
+  h += `<div class="mp-kv"><span>Visited</span><strong>${state.visited.size}/${state.n}</strong></div>`;
+  h += `<div class="mp-kv"><span>Time</span><strong>${state.timeCounter}</strong></div>`;
+  h += `<div class="mp-kv"><span>Stack depth</span><strong>${state.stack.length}</strong></div>`;
 
-  if (ev && ev.type === 'visit') {
-    h += `<div class="mp-block"><div class="mp-label">Extract-Min</div>`;
-    h += `<div class="mp-kv"><span>Node</span><strong style="color:${C.intersection}">${ev.node}</strong></div>`;
-    h += `<div class="mp-kv"><span>Distance</span><strong style="color:${C.intersection}">${ev.dist}</strong></div>`;
-    h += `<div class="mp-kv"><span>Action</span><strong>Finalize d[${ev.node}] = ${ev.dist}</strong></div>`;
-    h += '</div>';
-  }
-
-  if (ev && ev.type === 'relax') {
-    h += `<div class="mp-block"><div class="mp-label">Edge Relaxation</div>`;
-    h += `<div class="mp-kv"><span>Edge</span><strong>${ev.from} → ${ev.to}  (w=${ev.weight})</strong></div>`;
-
-    if (ev.reason === 'visited') {
-      h += `<div class="mp-kv"><span>Result</span><strong style="color:${C.textDim}">Node ${ev.to} already finalized</strong></div>`;
-    } else {
-      const oldStr = ev.oldDist === Infinity ? '∞' : ev.oldDist;
-      h += `<div class="mp-kv"><span>Current d[${ev.to}]</span><strong>${oldStr}</strong></div>`;
-      h += `<div class="mp-kv"><span>New path</span><strong>d[${ev.from}] + ${ev.weight} = ${state.dist[ev.from]} + ${ev.weight} = ${ev.newDist}</strong></div>`;
-      if (ev.improved) {
-        h += `<div class="mp-kv"><span>Result</span><strong style="color:${C.lineV}">Improved! (${ev.newDist} < ${oldStr})</strong></div>`;
-      } else {
-        h += `<div class="mp-kv"><span>Result</span><strong style="color:${C.sweep}">No improvement (${ev.oldDist} ≤ ${ev.newDist})</strong></div>`;
-      }
+  if (ev && ev.type === 'explore-edge') {
+    h += `<div class="mp-block"><div class="mp-label">Edge Classification</div>`;
+    h += `<div class="mp-kv"><span>Edge</span><strong>${ev.from} → ${ev.to}</strong></div>`;
+    h += `<div class="mp-kv"><span>Type</span><strong style="color:${
+      ev.classification === 'tree' ? C.lineV :
+      ev.classification === 'back' ? '#ef5350' : '#ce93d8'
+    }">${ev.classification}</strong></div>`;
+    if (ev.classification === 'back') {
+      h += `<div class="mp-kv"><span>Note</span><strong style="color:#ef5350">Cycle detected!</strong></div>`;
     }
     h += '</div>';
   }
 
-  if (state.phase === 'complete') {
-    h += `<div class="mp-block"><div class="mp-label">Final Distances</div>`;
-    for (let i = 0; i < state.n; i++) {
-      const d = state.dist[i];
-      h += `<div class="mp-kv"><span>d[${i}]</span><strong>${d === Infinity ? '∞ (unreachable)' : d}</strong></div>`;
-    }
+  if (ev && ev.type === 'discover') {
+    h += `<div class="mp-block"><div class="mp-label">Discovery</div>`;
+    h += `<div class="mp-kv"><span>Node</span><strong>${ev.node}</strong></div>`;
+    h += `<div class="mp-kv"><span>Discovery time</span><strong>${ev.time}</strong></div>`;
+    h += `<div class="mp-kv"><span>Parent</span><strong>${ev.parent >= 0 ? ev.parent : 'none (root)'}</strong></div>`;
     h += '</div>';
+  }
 
-    h += `<div class="mp-block"><div class="mp-label">Shortest Path Tree</div>`;
-    for (let i = 0; i < state.n; i++) {
-      if (i === state.source) continue;
-      const path = [];
-      let cur = i;
-      while (cur >= 0) { path.unshift(cur); cur = state.prev[cur]; }
-      if (path[0] === state.source) {
-        h += `<div class="mp-kv"><span>${state.source}→${i}</span><strong>${path.join(' → ')}  (d=${state.dist[i]})</strong></div>`;
-      } else {
-        h += `<div class="mp-kv"><span>${state.source}→${i}</span><strong style="color:${C.textMuted}">unreachable</strong></div>`;
-      }
-    }
+  if (ev && ev.type === 'finish') {
+    h += `<div class="mp-block"><div class="mp-label">Finish</div>`;
+    h += `<div class="mp-kv"><span>Node</span><strong>${ev.node}</strong></div>`;
+    h += `<div class="mp-kv"><span>Finish time</span><strong>${ev.time}</strong></div>`;
+    h += '</div>';
+  }
+
+  const treeCount = state.treeEdges.size;
+  const backCount = state.backEdges.size;
+  const crossCount = state.crossEdges.size;
+  if (treeCount + backCount + crossCount > 0) {
+    h += `<div class="mp-block"><div class="mp-label">Edge Summary</div>`;
+    h += `<div class="mp-kv"><span style="color:${C.lineV}">Tree</span><strong>${treeCount}</strong></div>`;
+    if (backCount > 0) h += `<div class="mp-kv"><span style="color:#ef5350">Back</span><strong>${backCount}</strong></div>`;
+    if (crossCount > 0) h += `<div class="mp-kv"><span style="color:#ce93d8">Cross/Fwd</span><strong>${crossCount}</strong></div>`;
     h += '</div>';
   }
 
@@ -885,7 +903,7 @@ function updateStatus(msg) {
 
 function updateMetrics() {
   document.getElementById('m-nodes').textContent = state.n || '0';
-  document.getElementById('m-visited').textContent = state.n > 0 ? `${state.visited.size}/${state.n}` : '–';
-  document.getElementById('m-pq').textContent = state.pq.length > 0 ? state.pq.length : '–';
-  document.getElementById('m-current').textContent = state.currentNode >= 0 ? state.currentNode : '–';
+  document.getElementById('m-visited').textContent = state.visited.size > 0 ? `${state.visited.size}/${state.n}` : '–';
+  document.getElementById('m-stack').textContent = state.stack.length > 0 ? state.stack.length : '–';
+  document.getElementById('m-time').textContent = state.timeCounter > 0 ? state.timeCounter : '–';
 }

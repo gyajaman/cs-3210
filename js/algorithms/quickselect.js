@@ -1,3 +1,5 @@
+import { C } from '../theme.js';
+
 export const id = 'quickselect';
 export const title = 'QuickSelect (k-th Smallest)';
 export const categories = ['divide-conquer'];
@@ -8,22 +10,6 @@ let cw, ch, dpr;
 let state, listeners;
 let delayTimer, delayResolve;
 let animFrameId;
-
-// App color scheme (from CSS variables)
-const C = {
-  accent:       '#7c4dff',
-  accentLight:  '#a48fff',
-  accentDim:    'rgba(124,77,255,0.15)',
-  lineH:        '#4fc3f7',   // cyan
-  lineV:        '#66bb6a',   // green
-  sweep:        '#ef5350',   // red
-  intersection: '#ffca28',   // yellow
-  activeLine:   '#ce93d8',   // magenta/purple
-  text:         '#c8c8d0',
-  textDim:      '#666680',
-  textMuted:    '#44445a',
-  bgCanvas:     '#0d1117',
-};
 
 function on(el, event, handler) {
   el.addEventListener(event, handler);
@@ -764,7 +750,7 @@ function drawRangeBracket() {
   ctx.strokeStyle = 'rgba(124,77,255,0.35)';
   ctx.lineWidth = 1;
   ctx.strokeRect(x1 + 0.5, 0.5, Math.max(0, w - 1), ch - 1);
-  ctx.fillStyle = '#a48fff';
+  ctx.fillStyle = C.accentLight;
   ctx.font = '11px JetBrains Mono, Fira Code, Consolas, monospace';
   ctx.fillText(`[${lo}..${hi}]`, x1 + 6, 14);
 }
